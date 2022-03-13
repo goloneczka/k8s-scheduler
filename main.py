@@ -15,10 +15,10 @@ if __name__ == '__main__':
     w = watch.Watch()
     for event in w.stream(v1.list_pod_for_all_namespaces, _request_timeout=120):
         print("Event: %s %s" % (event['type'], event['object'].metadata.name))
-        print("Object: ", event['object'])
 
     if event['type'] == 'ADDED':
-        print('event type is added')
+        print("Object: ", event['object'].metadata.managed_fields['f:spec'])
+
     if datetime.datetime.now() > minute_after_timestamp:
         w.stop()
 
