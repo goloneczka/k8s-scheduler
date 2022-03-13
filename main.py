@@ -17,6 +17,7 @@ if __name__ == '__main__':
         print("Event: %s %s" % (event['type'], event['object'].metadata.name))
 
         if event['type'] == 'ADDED':
+            print(event)
             print("Object added: ", event.spec.nodeName)
 
         if event['type'] == 'DELETED':
