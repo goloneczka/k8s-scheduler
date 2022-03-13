@@ -18,10 +18,10 @@ if __name__ == '__main__':
 
         if event['type'] == 'ADDED':
             print(event)
-            print("Object added: ", event['object'].metadata.spec.nodeName)
+            print("Object added: ", event['object'].spec.nodeName)
 
         if event['type'] == 'DELETED':
-            print("Object deleted: ", event['object'].metadata.spec.nodeName)
+            print("Object deleted: ", event['object'].spec.nodeName)
 
         if datetime.datetime.now() > minute_after_timestamp:
             w.stop()
