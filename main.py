@@ -16,10 +16,10 @@ if __name__ == '__main__':
     for event in w.stream(v1.list_pod_for_all_namespaces, _request_timeout=120):
         print("Event: %s %s" % (event['type'], event['object'].metadata.name))
 
-    if event['type'] == 'ADDED':
-        print("Object: ", event['object'].metadata.managed_fields['f:spec'])
+        if event['type'] == 'ADDED':
+            print("Object: ", event['object'].metadata.managed_fields['f:spec'])
 
-    if datetime.datetime.now() > minute_after_timestamp:
-        w.stop()
+        if datetime.datetime.now() > minute_after_timestamp:
+            w.stop()
 
     print("Ended.")
