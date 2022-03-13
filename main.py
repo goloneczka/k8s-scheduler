@@ -18,11 +18,13 @@ if __name__ == '__main__':
 
         if event['type'] == 'ADDED':
             print("Object added: ", event['object'].spec.node_name)
+            event['object'].spec.scheduler_name = 'own-scheduler'
 
         if event['type'] == 'DELETED':
             print("Object deleted: ", event['object'].spec.node_name)
 
         if datetime.datetime.now() > minute_after_timestamp:
+            print("im stopping listening")
             w.stop()
 
     print("Ended.")
