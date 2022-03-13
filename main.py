@@ -13,12 +13,13 @@ if __name__ == '__main__':
 
     minute_after_timestamp = datetime.datetime.now() + datetime.timedelta(minutes=1)
     w = watch.Watch()
-    for event in w.stream(v1.list_namespace, _request_timeout=60):
+    for event in w.stream(v1.list_pod_for_all_namespaces, _request_timeout=120):
         print("Event: %s %s" % (event['type'], event['object'].metadata.name))
-        if event['type'] == 'ADDED':
-            print('event type is added')
-        if datetime.datetime.now() > minute_after_timestamp:
-            w.stop()
+        print("Object: ", event['object'])
+
+    if event['type'] == 'ADDED':
+        print('event type is added')
+    if datetime.datetime.now() > minute_after_timestamp:
+        w.stop()
 
     print("Ended.")
-
