@@ -17,7 +17,10 @@ if __name__ == '__main__':
         print("Event: %s %s" % (event['type'], event['object'].metadata.name))
 
         if event['type'] == 'ADDED':
-            print("Object: ", event['object'].metadata.managed_fields['f:spec'])
+            print("Object added: ", event['object'].metadata.managed_fields['f:spec'])
+
+        if event['type'] == 'DELETED':
+            print("Object deleted: ", event['object'].metadata.managed_fields['f:spec'])
 
         if datetime.datetime.now() > minute_after_timestamp:
             w.stop()
