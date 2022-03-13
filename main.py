@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
         if event['type'] == 'ADDED':
             print(event)
-            print("Object added: ", event['raw_object'].spec.nodeName)
+            print("Object added: ", event['raw_object']['spec'].nodeName)
 
         if event['type'] == 'DELETED':
             print("Object deleted: ", event['raw_object'].spec.nodeName)
