@@ -2,29 +2,8 @@ import datetime
 
 from kubernetes import client, config, watch
 
+from WatchListener import watch_pod_events
+
 if __name__ == '__main__':
-
-    config.load_kube_config()
-    v1 = client.CoreV1Api()
-    print("Listing pods with their IPs:")
-    ret = v1.list_pod_for_all_namespaces(watch=False)
-    for i in ret.items:
-        print("%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
-
-    minute_after_timestamp = datetime.datetime.now() + datetime.timedelta(minutes=1)
-    w = watch.Watch()
-    for event in w.stream(v1.list_pod_for_all_namespaces, _request_timeout=120):
-        print("Event: %s %s" % (event['type'], event['object'].metadata.name))
-
-        if event['type'] == 'ADDED':
-            print("Object added: ", event['object'].spec.node_name)
-            event['object'].spec.scheduler_name = 'own-scheduler'
-
-        if event['type'] == 'DELETED':
-            print("Object deleted: ", event['object'].spec.node_name)
-
-        if datetime.datetime.now() > minute_after_timestamp:
-            print("im stopping listening")
-            w.stop()
-
-    print("Ended.")
+    config.load_incluster_config()
+    watch_pod_events()
