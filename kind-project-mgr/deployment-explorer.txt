@@ -1,0 +1,3 @@
+lower-[stress-deployment] - Usage to testing new scheduler
+metric-server - deployment to checking usage of resources
+scheduler-deployment - create a scheduler component basing on dockerfile
