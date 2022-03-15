@@ -19,12 +19,12 @@ def watch_pod_events():
                                             timeout_seconds=20):
                     logging.info(
                         f"Event: {event['type']} {event['object'].kind}, {event['object'].metadata.namespace}, {event['object'].metadata.name}, {event['object'].status.phase}")
-                    if event["object"].status.phase == "Pending":
+                    if event["object"].status.phase == "Pending" and event['object'].spec.node_name is None:
                         try:
                             logging.info(f'{event["object"].metadata.name} needs scheduling...')
                             pod_namespace = event["object"].metadata.namespace
                             pod_name = event["object"].metadata.name
-                            service_name = event["object"].metadata.labels["serviceName"]
+                            service_name = event["object"].metadata.labels["service_name"]
                             logging.info("Processing for Pod: %s/%s", pod_namespace, pod_name)
                             node_name = _get_schedulable_node(V1_CLIENT)
                             if node_name:
