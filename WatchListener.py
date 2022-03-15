@@ -15,7 +15,7 @@ def watch_pod_events():
             logging.info("Checking for pod events....")
             try:
                 watcher = watch.Watch()
-                for event in watcher.stream(V1_CLIENT.list_pod_for_all_namespaces, label_selector=SCHEDULE_STRATEGY,
+                for event in watcher.stream(V1_CLIENT.list_pod_for_all_namespaces,
                                             timeout_seconds=20):
                     logging.info(
                         f"Event: {event['type']} {event['object'].kind}, {event['object'].metadata.namespace}, {event['object'].metadata.name}, {event['object'].status.phase}")
