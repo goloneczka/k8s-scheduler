@@ -9,11 +9,6 @@ def _get_ready_nodes(v1_client, filtered=True):
     ready_nodes = []
     try:
         for n in v1_client.list_node().items:
-            # Look for any node that has noCustomScheduler label set to yes indicating that custom scheduler should not assign any pod to that node.
-            if n.metadata.labels.get("noCustomScheduler") == "yes":
-                logging.info(f"Skipping Node {n.metadata.name} since it has noCustomScheduler label")
-                continue
-
             if not n.spec.unschedulable:
                 no_schedule_taint = False
                 if n.spec.taints:

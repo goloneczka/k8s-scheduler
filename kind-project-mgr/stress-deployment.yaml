@@ -12,6 +12,7 @@ spec:
       labels:
         app: stress
     spec:
+      schedulerName: my-custom-scheduler
       containers:
         - name: stress
           image: jfusterm/stress

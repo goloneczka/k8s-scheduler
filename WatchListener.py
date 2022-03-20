@@ -17,29 +17,22 @@ def watch_pod_events():
                 watcher = watch.Watch()
                 for event in watcher.stream(V1_CLIENT.list_pod_for_all_namespaces,
                                             timeout_seconds=20):
-                    logging.info(
-                        f"Event: {event['type']} {event['object'].kind}, {event['object'].metadata.namespace}, {event['object'].metadata.name}, {event['object'].status.phase}")
                     if event["object"].status.phase == "Pending" and event['object'].spec.node_name is None:
                         try:
                             logging.info(f'{event["object"].metadata.name} needs scheduling...')
                             pod_namespace = event["object"].metadata.namespace
                             pod_name = event["object"].metadata.name
-                            service_name = event["object"].metadata.labels["service_name"]
                             logging.info("Processing for Pod: %s/%s", pod_namespace, pod_name)
                             node_name = _get_schedulable_node(V1_CLIENT)
                             if node_name:
-                                logging.info("Namespace %s, PodName %s , Node Name: %s  Service Name: %s",
-                                             pod_namespace, pod_name, node_name, service_name)
+                                logging.info("Namespace %s, PodName %s , Node Name: %s",
+                                             pod_namespace, pod_name, node_name)
                                 res = schedule_pod(V1_CLIENT, pod_name, node_name, pod_namespace)
                                 logging.info("Response %s ", res)
                             else:
                                 logging.error(f"Found no valid node to schedule {pod_name} in {pod_namespace}")
-                        except ApiException as e:
-                            logging.error(e.body)
-                        except ValueError as e:
-                            logging.error("Value Error %s", e)
-                        except:
-                            logging.exception("Ignoring Exception")
+                        except Exception as e:
+                            logging.exception("Got problem:", e)
                 logging.info("Resetting k8s watcher...")
             except:
                 logging.exception("Ignoring Exception")

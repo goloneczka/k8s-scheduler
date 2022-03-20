@@ -1,4 +1,4 @@
-FROM python:3.10-alpine
+FROM python:3.10
 RUN pip install kubernetes
-COPY Scheduler.py /scheduler.py
-CMD python /scheduler.py
+COPY . .
+CMD ["python","-u","main.py"]

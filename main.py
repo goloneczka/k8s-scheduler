@@ -1,8 +1,5 @@
-import datetime
 from logging import basicConfig, getLogger, INFO
-
 from kubernetes import config
-
 from WatchListener import watch_pod_events
 
 formatter = " %(asctime)s | %(levelname)-6s | %(process)d | %(threadName)-12s |" \
@@ -10,7 +7,9 @@ formatter = " %(asctime)s | %(levelname)-6s | %(process)d | %(threadName)-12s |"
 basicConfig(level=INFO, format=formatter)
 logger = getLogger("meetup-scheduler")
 
-
 if __name__ == '__main__':
-    config.load_kube_config()
+    try:
+        config.load_kube_config()
+    except:
+        config.load_incluster_config()
     watch_pod_events()
