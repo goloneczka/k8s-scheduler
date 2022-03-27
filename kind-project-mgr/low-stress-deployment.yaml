@@ -12,7 +12,15 @@ spec:
       labels:
         app: stress
     spec:
+      schedulerName: my-custom-scheduler
       containers:
-      - name: stress
-        image: jfusterm/stress
-        command: ["stress", "--cpu", "10"]
+        - name: stress
+          image: jfusterm/stress
+          command: [ "stress", "--cpu", "1", "-m", "1", "--vm-bytes", "128M", "--io", "1", "--hdd", "2"]
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"

@@ -32,7 +32,7 @@ def _get_ready_nodes(v1_client, filtered=True):
     return ready_nodes
 
 
-def _get_schedulable_node(v1_client):
+def get_schedulable_node(v1_client):
     node_list = _get_ready_nodes(v1_client)
     if not node_list:
         return None
