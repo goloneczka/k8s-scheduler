@@ -6,17 +6,17 @@ spec:
   replicas: 2
   selector:
     matchLabels:
-      app: stress
+      app: low-stress
   template:
     metadata:
       labels:
-        app: stress
+        app: low-stress
     spec:
       schedulerName: my-custom-scheduler
       containers:
         - name: stress
           image: jfusterm/stress
-          command: [ "stress", "--cpu", "1", "-m", "1", "--vm-bytes", "128M", "--io", "1", "--hdd", "2"]
+          command: [ "stress", "--cpu", "1", "-m", "1", "--vm-bytes", "128M"]
           resources:
             requests:
               memory: "64Mi"

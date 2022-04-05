@@ -1,16 +1,17 @@
 import logging
 
-from kubernetes.client import CoreV1Api
+from kubernetes.client import CoreV1Api, CustomObjectsApi
 from kubernetes.watch import watch
 
 from . import NodeHelper
 from . import Scheduler
-from .Pod import Pod
+from entity.Pod import Pod
 
 SCHEDULE_STRATEGY = "schedulingStrategy=meetup"
 
 def watch_pod_events():
     V1_CLIENT = CoreV1Api()
+    V1_API = CustomObjectsApi()
     while True:
         try:
             logging.info("Checking for pod events....")
@@ -25,7 +26,7 @@ def watch_pod_events():
                             pod = Pod(event["object"])
                             logging.info("Processing for Pod: %s/%s", pod.namespace, pod.name)
                             pod_que.append(pod)
-                            node_name = NodeHelper.get_schedulable_node(V1_CLIENT)
+                            node_name = NodeHelper.get_schedulable_node(V1_CLIENT, V1_API)
                             if node_name:
                                 res = Scheduler.schedule_pod(V1_CLIENT, pod.name, node_name, pod.namespace)
                                 logging.info("Response %s ", res)

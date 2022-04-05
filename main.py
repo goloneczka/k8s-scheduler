@@ -2,7 +2,7 @@ from logging import basicConfig, getLogger, INFO
 
 from kubernetes import config
 
-from PodHelper import describe_pods, describe_pod
+from Helper import describe_pods, describe_pod, list_node, node_usage, node_describe
 from scheduler.WatchListener import watch_pod_events
 
 formatter = " %(asctime)s | %(levelname)-6s | %(process)d | %(threadName)-12s |" \
@@ -15,5 +15,6 @@ if __name__ == '__main__':
         config.load_kube_config()
     except:
         config.load_incluster_config()
-    # describe_pod('low-stress-deployment-8c46845f4-62cmj')
+
+    node_describe()
     watch_pod_events()
