@@ -29,15 +29,16 @@ def _get_ready_nodes(v1_client, filtered=True):
                     logging.error("NoSchedule taint effect on node %s", n.metadata.name)
             else:
                 logging.error("Scheduling disabled on %s ", n.metadata.name)
-        logging.info("Nodes : %s, Filtered: %s", ready_nodes, filtered)
     except ApiException as e:
         logging.error(e.body)
         ready_nodes = []
     return ready_nodes
 
 
-def calc_nodes(node_list, v1_api):
+def calc_nodes(node_list, v1_client, v1_api):
     k8s_nodes = [Node(v1_api.get_cluster_custom_object("metrics.k8s.io", "v1beta1", "nodes", n.metadata.name)) for n in node_list]
+    for node in k8s_nodes:
+        node.calculate_usages_from_pods(v1_client.list_pod_for_all_namespaces(watch=False, field_selector='spec.nodeName='+node.name))
 
     calc_network([n.status.addresses[0].address] for n in node_list)
     return 0
@@ -47,6 +48,6 @@ def get_schedulable_node(v1_client, v1_api):
     node_list = _get_ready_nodes(v1_client)
     if not node_list:
         return None
-    best_node = calc_nodes(node_list, v1_api)
+    best_node = calc_nodes(node_list, v1_client, v1_api)
     available_nodes = list(set(node_list))
     return random.choice(available_nodes)
