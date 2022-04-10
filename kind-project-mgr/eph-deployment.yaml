@@ -2,12 +2,14 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: eph-deployment
+  labels:
+    schedulingStrategy: meetup
 spec:
   schedulerName: my-custom-scheduler
   containers:
     - name: stress
       image: jfusterm/stress
-      command: [ "stress", "--cpu", "1", "-m", "1", "--vm-bytes", "128M"]
+      command: [ "stress", "--cpu", "1"]
       resources:
         requests:
           memory: "64Mi"

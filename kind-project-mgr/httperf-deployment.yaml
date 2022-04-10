@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: http-deployment
+  labels:
+    schedulingStrategy: meetup
 spec:
   replicas: 2
   selector:
@@ -11,6 +13,7 @@ spec:
     metadata:
       labels:
         app: httperf
+        schedulingStrategy: meetup
     spec:
       serviceAccountName: my-custom-httperf
       schedulerName: my-custom-scheduler
@@ -25,8 +28,8 @@ spec:
                 fieldPath: spec.nodeName
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "100m"
+            memory: "128Mi"
+            cpu: "128m"
           limits:
-            memory: "512Mi"
-            cpu: "500m"
+            memory: "256Mi"
+            cpu: "512m"

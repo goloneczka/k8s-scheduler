@@ -5,11 +5,9 @@ from entity.Node import Node
 
 from kubernetes.client import ApiException
 
-from scheduler.NetworkUsage import calc_network
-
 _NOSCHEDULE_TAINT = "NoSchedule"
 
-def _get_ready_nodes(v1_client, filtered=True):
+def _get_ready_nodes(v1_client):
     ready_nodes = []
     try:
         for n in v1_client.list_node().items:
@@ -36,11 +34,11 @@ def _get_ready_nodes(v1_client, filtered=True):
 
 
 def calc_nodes(node_list, v1_client, v1_api):
-    k8s_nodes = [Node(v1_api.get_cluster_custom_object("metrics.k8s.io", "v1beta1", "nodes", n.metadata.name)) for n in node_list]
+    k8s_nodes = [Node(v1_api.get_cluster_custom_object("metrics.k8s.io", "v1beta1", "nodes", n.metadata.name), n.status) for n in node_list]
     for node in k8s_nodes:
         node.calculate_usages_from_pods(v1_client.list_pod_for_all_namespaces(watch=False, field_selector='spec.nodeName='+node.name))
+        node.set_network_delay()
 
-    calc_network([n.status.addresses[0].address] for n in node_list)
     return 0
 
 
@@ -49,5 +47,5 @@ def get_schedulable_node(v1_client, v1_api):
     if not node_list:
         return None
     best_node = calc_nodes(node_list, v1_client, v1_api)
-    available_nodes = list(set(node_list))
+    available_nodes = list(set([n.metadata.name for n in node_list]))
     return random.choice(available_nodes)

@@ -17,15 +17,14 @@ def watch_pod_events():
             logging.info("Checking for pod events....")
             try:
                 watcher = watch.Watch()
-                pod_que = []
                 for event in watcher.stream(V1_CLIENT.list_pod_for_all_namespaces,
+                                            label_selector=SCHEDULE_STRATEGY,
                                             timeout_seconds=20):
                     if event["object"].status.phase == "Pending" and event['object'].spec.node_name is None:
                         try:
                             logging.info(f'{event["object"].metadata.name} needs scheduling...')
                             pod = Pod(event["object"])
                             logging.info("Processing for Pod: %s/%s", pod.namespace, pod.name)
-                            pod_que.append(pod)
                             node_name = NodeHelper.get_schedulable_node(V1_CLIENT, V1_API)
                             if node_name:
                                 res = Scheduler.schedule_pod(V1_CLIENT, pod.name, node_name, pod.namespace)
@@ -34,9 +33,6 @@ def watch_pod_events():
                                 logging.error(f"Found no valid node to schedule {pod.name} in {pod.namespace}")
                         except Exception as e:
                             logging.exception("Got problem:", e)
-                if len(pod_que):
-                    print('in que: ', len(pod_que))
-                    pod_que = []
                 logging.info("Resetting k8s watcher...")
             except:
                 logging.exception("Ignoring Exception")
