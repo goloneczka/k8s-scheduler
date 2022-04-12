@@ -5,6 +5,8 @@ from entity.Node import Node
 
 from kubernetes.client import ApiException
 
+from rank.TOPSIS import TOPSIS
+
 _NOSCHEDULE_TAINT = "NoSchedule"
 
 def _get_ready_nodes(v1_client):
@@ -39,7 +41,8 @@ def calc_nodes(node_list, v1_client, v1_api):
         node.calculate_usages_from_pods(v1_client.list_pod_for_all_namespaces(watch=False, field_selector='spec.nodeName='+node.name))
         node.set_network_delay()
 
-    return 0
+    topsis_rank = TOPSIS(k8s_nodes)
+    return topsis_rank.get_best_row_name()
 
 
 def get_schedulable_node(v1_client, v1_api):

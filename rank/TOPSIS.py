@@ -1,5 +1,8 @@
+import re
 from math import sqrt
 
+def _get_value_from_string(string):
+    return int(re.split('(\d+)', string)[1])
 
 class TOPSIS:
 
@@ -7,13 +10,13 @@ class TOPSIS:
         self.topsis_matrix = self._generate_matrix(nodes)
         self._normalize_rest_columns()
         self._calc_weighted_matrix([.3, .3, .1, .1, .2])
+        self.T_topsis_matrix = [[self.topsis_matrix[j][i] for j in range(len(self.topsis_matrix))] for i in range(len(self.topsis_matrix[0]))]
         self.b_distance, self.w_distance = self._get_optima_distance()
         self._calc_distance_from_optima()
 
     def get_best_row_name(self):
         if len(self.topsis_matrix):
-            T_topsis_matrix = self.topsis_matrix # TODO !!! o magic with transportive matrix
-            index_of_max_score = list.index(max(T_topsis_matrix[-1]))
+            index_of_max_score = list.index(max(self.T_topsis_matrix[-1]))
             return self.topsis_matrix[index_of_max_score][0] # attr 0 is name
         return None
 
@@ -22,10 +25,10 @@ class TOPSIS:
     def _generate_matrix(self, nodes):
         matrix = []
         for node in nodes:
-            cpu_usage = node.cpu_usage / node.cpu_allocatable
-            memory_usage = node.memory_usage / node.memory_allocatable
-            disk_limit_usage = node.eph_storage_limit / node.eph_storage_allocatable
-            pods_usage = node.pods_len / node.pods_allocatable
+            cpu_usage = _get_value_from_string(node.cpu_usage) / 1000000000 / int(node.cpu_allocatable)
+            memory_usage = _get_value_from_string(node.memory_usage) / _get_value_from_string(node.memory_allocatable)
+            disk_limit_usage = _get_value_from_string(node.eph_storage_limit) / _get_value_from_string(node.eph_storage_allocatable)
+            pods_usage = node.pods_len / int(node.pods_allocatable)
             matrix.append([node.name, cpu_usage, memory_usage, disk_limit_usage, pods_usage, node.network_delay])
         return matrix
 
@@ -42,14 +45,13 @@ class TOPSIS:
 
     def _calc_weighted_matrix(self, weights):
         for row in self.topsis_matrix:
-            for (indx, nested_row) in enumerate(row[1:]):
-                nested_row *= weights[indx]
+            for (indx, _) in enumerate(row[1:]):
+                row[indx+1] *= weights[indx]
 
 
     def _get_optima_distance(self):
         b_distance, w_distance = [], []
-        T_topsis_matrix = self.topsis_matrix # TODO !!! o magic with transportive matrix
-        for row in T_topsis_matrix[1:]:
+        for row in self.T_topsis_matrix[1:]:
             b_distance.append(max(row))
             w_distance.append(min(row))
 
@@ -57,13 +59,17 @@ class TOPSIS:
 
         return b_distance, w_distance
 
-    def _calc_distance_from_optima(self):
-        for row in self.topsis_matrix:
-            row_b_distance, row_w_distance = .0, .0
-            for (indx, nested_row) in enumerate(row[1:]):
-                row_b_distance += (self.b_distance[indx] - nested_row) * (self.b_distance[indx] - nested_row)
-                row_w_distance += (self.w_distance[indx] - nested_row) * (self.w_distance[indx] - nested_row)
-            row.append(sqrt(row_w_distance) / (sqrt(row_w_distance) + sqrt(row_b_distance)))
+    def _calc_distance_from_optima(self, metric='euclides'):
+        if metric == 'euclides':
+            for row in self.topsis_matrix:
+                row_b_distance, row_w_distance = .0, .0
+                for (indx, nested_row) in enumerate(row[1:]):
+                    row_b_distance += (self.b_distance[indx] - nested_row) * (self.b_distance[indx] - nested_row)
+                    row_w_distance += (self.w_distance[indx] - nested_row) * (self.w_distance[indx] - nested_row)
+                if row_b_distance == 0.0:
+                    row.append(1)
+                else:
+                    row.append(sqrt(row_w_distance) / (sqrt(row_w_distance) + sqrt(row_b_distance)))
 
 
 

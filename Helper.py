@@ -1,5 +1,6 @@
 import logging
 import os
+import subprocess
 import time
 
 from kubernetes import client, config
@@ -31,6 +32,17 @@ def list_node():
         os.system("ping -c1 -w4 " + ip)
         os.system("ping -c1 -w4 " + ip)
         logging.info("done !")
+
+def list_nodeA():
+    v1 = client.CoreV1Api()
+    for n in v1.list_node().items:
+        ip = n.status.addresses[0].address
+        proc = subprocess.Popen(
+            ['ping', '-q', '-c', '3', ip],
+            stdout=subprocess.DEVNULL)
+        proc.wait()
+        if proc.returncode == 0:
+            print('{} is UP'.format(ip))
 
 def node_usage():
     api = client.CustomObjectsApi()
