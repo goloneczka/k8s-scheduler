@@ -1,19 +1,18 @@
 import logging
 import random
 
+from entity.Node import Node
+
 from kubernetes.client import ApiException
+
+from rank.TOPSIS import TOPSIS
 
 _NOSCHEDULE_TAINT = "NoSchedule"
 
-def _get_ready_nodes(v1_client, filtered=True):
+def _get_ready_nodes(v1_client):
     ready_nodes = []
     try:
         for n in v1_client.list_node().items:
-            # Look for any node that has noCustomScheduler label set to yes indicating that custom scheduler should not assign any pod to that node.
-            if n.metadata.labels.get("noCustomScheduler") == "yes":
-                logging.info(f"Skipping Node {n.metadata.name} since it has noCustomScheduler label")
-                continue
-
             if not n.spec.unschedulable:
                 no_schedule_taint = False
                 if n.spec.taints:
@@ -25,21 +24,36 @@ def _get_ready_nodes(v1_client, filtered=True):
                 if not no_schedule_taint:
                     for status in n.status.conditions:
                         if status.status == "True" and status.type == "Ready" and n.metadata.name:
-                            ready_nodes.append(n.metadata.name)
+                            ready_nodes.append(n)
                 else:
                     logging.error("NoSchedule taint effect on node %s", n.metadata.name)
             else:
                 logging.error("Scheduling disabled on %s ", n.metadata.name)
-        logging.info("Nodes : %s, Filtered: %s", ready_nodes, filtered)
     except ApiException as e:
         logging.error(e.body)
         ready_nodes = []
     return ready_nodes
 
 
-def _get_schedulable_node(v1_client):
+def calc_nodes(node_list, v1_client, v1_api):
+    k8s_nodes = [Node(v1_api.get_cluster_custom_object("metrics.k8s.io", "v1beta1", "nodes", n.metadata.name), n.status) for n in node_list]
+    for node in k8s_nodes:
+        node.calculate_usages_from_pods(v1_client.list_pod_for_all_namespaces(watch=False, field_selector='spec.nodeName='+node.name))
+        node.set_network_delay()
+
+    topsis_rank_instance = TOPSIS()
+    if not topsis_rank_instance.is_initialed():
+        topsis_rank_instance.init(k8s_nodes)
+
+    return topsis_rank_instance.get_best_row_name()
+
+
+def get_schedulable_node(v1_client, v1_api):
     node_list = _get_ready_nodes(v1_client)
     if not node_list:
         return None
-    available_nodes = list(set(node_list))
+    best_node = calc_nodes(node_list, v1_client, v1_api)
+    available_nodes = list(set([n.metadata.name for n in node_list]))
     return random.choice(available_nodes)
+
+#TODO write own cache ! - python client dosent support 'informers'

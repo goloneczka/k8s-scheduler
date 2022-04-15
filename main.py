@@ -1,9 +1,20 @@
-import datetime
+from logging import basicConfig, getLogger, INFO
 
-from kubernetes import client, config, watch
+from kubernetes import config
 
-from WatchListener import watch_pod_events
+from Helper import describe_pods, describe_pod, list_node, node_usage, node_describe, list_nodeA
+from scheduler.WatchListener import watch_pod_events
+
+formatter = " %(asctime)s | %(levelname)-6s | %(process)d | %(threadName)-12s |" \
+            " %(thread)-15d | %(name)-30s | %(filename)s:%(lineno)d | %(message)s |"
+basicConfig(level=INFO, format=formatter)
+logger = getLogger("meetup-scheduler")
 
 if __name__ == '__main__':
-    config.load_incluster_config()
+    try:
+        config.load_kube_config()
+    except:
+        config.load_incluster_config()
+
+    list_nodeA()
     watch_pod_events()
