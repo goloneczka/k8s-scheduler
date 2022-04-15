@@ -1,5 +1,6 @@
 import os
 import re
+import subprocess
 import time
 
 
@@ -53,6 +54,12 @@ class Node:
 
     def set_network_delay(self):
         s_time = time.time()
-        os.system("ping -c1 -w3 " + self.ip)
-        os.system("ping -c1 -w3 " + self.ip)
+        proc = subprocess.Popen(
+            ['ping', '-q', '-c', '1', self.ip],
+            stdout=subprocess.DEVNULL)
+        proc.wait()
+        proc = subprocess.Popen(
+            ['ping', '-q', '-c', '1', self.ip],
+            stdout=subprocess.DEVNULL)
+        proc.wait()
         self.network_delay = time.time() - s_time

@@ -3,6 +3,7 @@ import logging
 from kubernetes.client import CoreV1Api, CustomObjectsApi
 from kubernetes.watch import watch
 
+from rank.TOPSIS import TOPSIS
 from . import NodeHelper
 from . import Scheduler
 from entity.Pod import Pod
@@ -12,6 +13,7 @@ SCHEDULE_STRATEGY = "schedulingStrategy=meetup"
 def watch_pod_events():
     V1_CLIENT = CoreV1Api()
     V1_API = CustomObjectsApi()
+    topsis_rank = TOPSIS()
     while True:
         try:
             logging.info("Checking for pod events....")
@@ -34,6 +36,7 @@ def watch_pod_events():
                         except Exception as e:
                             logging.exception("Got problem:", e)
                 logging.info("Resetting k8s watcher...")
+                topsis_rank.clear_topsis_cache()
             except:
                 logging.exception("Ignoring Exception")
             finally:
