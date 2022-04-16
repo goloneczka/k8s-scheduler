@@ -1,6 +1,8 @@
 import re
 from math import sqrt
 
+from rank.metrics import euclidean_distance, minkowski_distance
+
 
 def _get_value_from_string(string):
     return int(re.split('(\d+)', string)[1])
@@ -43,24 +45,25 @@ class TOPSIS(metaclass=SingletonMeta):
     def _generate_matrix(self, nodes):
         matrix = []
         for node in nodes:
-            cpu_usage = _get_value_from_string(node.cpu_usage) / 1000000000 / int(node.cpu_allocatable)
-            memory_usage = _get_value_from_string(node.memory_usage) / _get_value_from_string(node.memory_allocatable)
+            cpu_usage = _get_value_from_string(node.cpu_usage) / 1000000000 / int(node.cpu_allocatable) * 100
+            memory_usage = _get_value_from_string(node.memory_usage) / _get_value_from_string(node.memory_allocatable) * 100
             disk_limit_usage = _get_value_from_string(node.eph_storage_limit) / _get_value_from_string(
-                node.eph_storage_allocatable)
-            pods_usage = node.pods_len / int(node.pods_allocatable)
+                node.eph_storage_allocatable) * 100
+            pods_usage = node.pods_len / int(node.pods_allocatable) * 100
             matrix.append([node.name, cpu_usage, memory_usage, disk_limit_usage, pods_usage, node.network_delay])
         return matrix
 
     def _normalize_rest_columns(self):
-        powed_sum_of_network_delay = .0
+        powed_sums = [.0] * len(self.topsis_matrix[0][1:])
         for row in self.topsis_matrix:
-            powed_sum_of_network_delay += row[5] * row[5]  # attr 5 is network deplay
-            # TODO -> add other columns if avaible in nodes
+            for (indx, val) in enumerate(row[1:]):
+                powed_sums[indx] += val * val
 
-        powed_sum_of_network_delay = sqrt(powed_sum_of_network_delay)
+        powed_sums = [sqrt(i) for i in powed_sums]
+
         for row in self.topsis_matrix:
-            row[5] /= powed_sum_of_network_delay
-            # TODO -> add other columns if avaible in nodes
+            for (indx, _) in enumerate(row[1:]):
+                row[indx + 1] /= powed_sums
 
     def _calc_weighted_matrix(self, weights):
         for row in self.topsis_matrix:
@@ -81,21 +84,16 @@ class TOPSIS(metaclass=SingletonMeta):
     def _calc_distance_from_optima(self, metric='euclides'):
         if metric == 'euclides':
             for row in self.topsis_matrix:
-                row_b_distance, row_w_distance = .0, .0
-                for (indx, nested_row) in enumerate(row[1:]):
-                    row_b_distance += (self.b_distance[indx] - nested_row) * (self.b_distance[indx] - nested_row)
-                    row_w_distance += (self.w_distance[indx] - nested_row) * (self.w_distance[indx] - nested_row)
-                if row_b_distance == 0.0:
-                    row.append(1)
-                else:
-                    row.append(sqrt(row_w_distance) / (sqrt(row_w_distance) + sqrt(row_b_distance)))
+                row.append(euclidean_distance(row, self.b_distance, self.w_distance))
+        elif metric == 'minkowski':
+            for row in self.topsis_matrix:
+                row.append(minkowski_distance(row, self.b_distance, self.w_distance, 4))
 
     def clear_topsis_cache(self):
         self.w_distance = None
         self.b_distance = None
         self.T_topsis_matrix = None
         self.topsis_matrix = None
-
 
     def is_initialed(self):
         return self.topsis_matrix is not None
