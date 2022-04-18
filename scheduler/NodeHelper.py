@@ -56,4 +56,3 @@ def get_schedulable_node(v1_client, v1_api):
     available_nodes = list(set([n.metadata.name for n in node_list]))
     return random.choice(available_nodes)
 
-#TODO write own cache ! - python client dosent support 'informers'
