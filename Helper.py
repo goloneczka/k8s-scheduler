@@ -21,8 +21,7 @@ def describe_pod(name = None):
     print("Listing pod ", name)
     ret = v1.list_pod_for_all_namespaces(watch=False)
     specyfied_pod = [item for item in ret.items if item.metadata.name == name]
-    print(specyfied_pod[0].spec.containers[0].resources)
-    print(specyfied_pod[0].spec.ephemeral_containers)
+
 
 
 def list_node():

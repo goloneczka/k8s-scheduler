@@ -1,22 +1,13 @@
 import re
 from math import sqrt
 
-from rank.ahp import calc_weights
+from rank import SingletonMeta
+from rank.ahp import Ahp
 from rank.metrics import euclidean_distance, minkowski_distance
 
 
 def _get_value_from_string(string):
     return int(re.split('(\d+)', string)[1])
-
-
-class SingletonMeta(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            instance = super().__call__(*args, **kwargs)
-            cls._instances[cls] = instance
-        return cls._instances[cls]
 
 
 class TOPSIS(metaclass=SingletonMeta):
@@ -28,12 +19,12 @@ class TOPSIS(metaclass=SingletonMeta):
         self._b_distance = None
         self._T_topsis_matrix = None
         self._topsis_matrix = None
-        self._weights = None
+        self._ahp = Ahp()
 
     def init(self, nodes):
         self._topsis_matrix = self._generate_matrix(nodes)
         self._normalize_columns()
-        self._weights = calc_weights(self._topsis_matrix[0][1:])
+
         self._calc_weighted_matrix()
         self._T_topsis_matrix = [[self._topsis_matrix[j][i] for j in range(len(self._topsis_matrix))] for i in
                                  range(len(self._topsis_matrix[0]))]
@@ -74,7 +65,7 @@ class TOPSIS(metaclass=SingletonMeta):
     def _calc_weighted_matrix(self):
         for row in self._topsis_matrix:
             for (indx, _) in enumerate(row[1:]):
-                row[indx + 1] *= self._weights[indx]
+                row[indx + 1] *= self._ahp.weights[indx]
 
     def _get_optima_distance(self):
         b_distance, w_distance = [], []
@@ -90,14 +81,13 @@ class TOPSIS(metaclass=SingletonMeta):
                 row.append(euclidean_distance(row, self._b_distance, self._w_distance))
         elif metric == 'minkowski':
             for row in self._topsis_matrix:
-                row.append(minkowski_distance(row, self._b_distance, self._w_distance, 4, self._weights))
+                row.append(minkowski_distance(row, self._b_distance, self._w_distance, 4, self._ahp.weights))
 
     def clear_topsis_cache(self):
         self._w_distance = None
         self._b_distance = None
         self._T_topsis_matrix = None
         self._topsis_matrix = None
-        self._weights = None
 
     def is_initialed(self):
         return self._topsis_matrix is not None
