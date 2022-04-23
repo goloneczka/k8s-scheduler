@@ -45,7 +45,9 @@ def calc_nodes(node_list, v1_client, v1_api):
     if not topsis_rank_instance.is_initialed():
         topsis_rank_instance.init(k8s_nodes)
 
-    return topsis_rank_instance.get_best_row_name()
+    best_row_name = topsis_rank_instance.get_best_row_name()
+    topsis_rank_instance.update_cache(best_row_name)
+    return best_row_name
 
 
 def get_schedulable_node(v1_client, v1_api):
