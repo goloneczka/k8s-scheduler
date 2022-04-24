@@ -1,7 +1,7 @@
 import re
 from math import sqrt, exp
 
-from rank import SingletonMeta
+from rank.SingletonMeta import SingletonMeta
 from rank.ahp import Ahp
 from rank.metrics import euclidean_distance, minkowski_distance
 
@@ -14,16 +14,22 @@ class TOPSIS(metaclass=SingletonMeta):
 
     #   attrs: node.name, cpu_usage, memory_usage, disk_limit_usage, pods_usage, node.network_delay
 
-    def __init__(self):
+    def _init(self):
         self._w_distance = None
         self._b_distance = None
         self._T_topsis_matrix = None
         self._topsis_matrix = None
         self._cached_nodes = None
+        self._number_of_pods = None
+        self._copied_initialized_score = None
+
+    def __init__(self):
+        self._init()
         self._ahp = Ahp()
 
     def init(self, nodes):
         self._topsis_matrix = self._generate_matrix(nodes)
+        self._number_of_pods = [node.pods_len for node in nodes]
         self._normalize_columns()
 
         self._cached_nodes = [0] * len(self._topsis_matrix)
@@ -34,7 +40,7 @@ class TOPSIS(metaclass=SingletonMeta):
                                  range(len(self._topsis_matrix[0]))]
 
         self._b_distance, self._w_distance = self._get_optima_distance()
-        self._calc_distance_from_optima()
+        self._copied_initialized_score = self._calc_basic_score()
 
     def get_best_row_name(self):
         topsis_scores = self._T_topsis_matrix[-1]
@@ -78,33 +84,31 @@ class TOPSIS(metaclass=SingletonMeta):
 
         return b_distance, w_distance
 
-    def _calc_distance_from_optima(self, metric='euclides'):
-        topsis_score = [.0] * len(self._topsis_matrix)
+    def _calc_basic_score(self, metric='euclides'):
+        copied_initialized_score = []
         if metric == 'euclides':
             for row in self._topsis_matrix:
-                topsis_score.append(euclidean_distance(row, self._b_distance, self._w_distance))
+                distance = euclidean_distance(row, self._b_distance, self._w_distance)
+                row.append(distance)
+                copied_initialized_score.append(distance)
         elif metric == 'minkowski':
             for row in self._topsis_matrix:
-                topsis_score.append(minkowski_distance(row, self._b_distance, self._w_distance, 4, self._ahp.weights))
-
-        for (indx, score) in enumerate(topsis_score):
-            number_of_cached_nodes = self._cached_nodes[indx]
-            score = score if number_of_cached_nodes == 0 else \
-                score * (1 - number_of_cached_nodes / (number_of_cached_nodes + self._topsis_matrix[indx][4]) * exp(-1 / number_of_cached_nodes)) # attr 4 is number of pods
-            self._topsis_matrix[indx].append(score)
+                distance = minkowski_distance(row, self._b_distance, self._w_distance, 4, self._ahp.weights)
+                row.append(distance)
+                copied_initialized_score.append(distance)
+        return copied_initialized_score
 
     def clear_topsis_cache(self):
-        self._w_distance = None
-        self._b_distance = None
-        self._T_topsis_matrix = None
-        self._topsis_matrix = None
-        self._cached_nodes = None
+        self._init()
 
     def update_cache(self, best_row_name):
         topsis_names = self._T_topsis_matrix[0]
         for (indx, name) in enumerate(topsis_names):
             if name == best_row_name:
                 self._cached_nodes[indx] += 1
+                number_of_cached_nodes = self._cached_nodes[indx]
+                self._topsis_matrix[indx][-1] = self._copied_initialized_score[indx] * (
+                        1 - number_of_cached_nodes / (number_of_cached_nodes + self._number_of_pods[indx]) * exp( -1 / number_of_cached_nodes))  # attr 4 is number of pods, attr -1 is topsis score
                 break
 
     def is_initialed(self):
