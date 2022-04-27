@@ -50,11 +50,10 @@ def calc_nodes(node_list, v1_client, v1_api):
     return best_row_name
 
 
-def get_schedulable_node(v1_client, v1_api):
+def choose_best_node(v1_client, v1_api):
     node_list = _get_ready_nodes(v1_client)
     if not node_list:
         return None
-    best_node = calc_nodes(node_list, v1_client, v1_api)
-    available_nodes = list(set([n.metadata.name for n in node_list]))
-    return random.choice(available_nodes)
+    return calc_nodes(node_list, v1_client, v1_api)
+
 

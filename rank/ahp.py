@@ -29,5 +29,4 @@ class Ahp(metaclass=SingletonMeta):
                 row[indx] /= col_sum[indx]
                 t_sum += row[indx]
             eigen_vector.append(t_sum)
-
         return eigen_vector

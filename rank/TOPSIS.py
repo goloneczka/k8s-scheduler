@@ -9,7 +9,6 @@ from rank.metrics import euclidean_distance, minkowski_distance
 def _get_value_from_string(string):
     return int(re.split('(\d+)', string)[1])
 
-
 class TOPSIS(metaclass=SingletonMeta):
 
     #   attrs: node.name, cpu_usage, memory_usage, disk_limit_usage, pods_usage, node.network_delay
@@ -29,18 +28,23 @@ class TOPSIS(metaclass=SingletonMeta):
 
     def init(self, nodes):
         self._topsis_matrix = self._generate_matrix(nodes)
+        print('|| ', self._topsis_matrix, ' || ')
+
         self._number_of_pods = [node.pods_len for node in nodes]
         self._normalize_columns()
+        print('|| ', self._topsis_matrix, ' || ')
 
         self._cached_nodes = [0] * len(self._topsis_matrix)
 
         self._calc_weighted_matrix()
+        print('|| ', self._topsis_matrix, ' || ')
 
         self._T_topsis_matrix = [[self._topsis_matrix[j][i] for j in range(len(self._topsis_matrix))] for i in
                                  range(len(self._topsis_matrix[0]))]
 
         self._b_distance, self._w_distance = self._get_optima_distance()
         self._copied_initialized_score = self._calc_basic_score()
+        print('|| ', self._topsis_matrix, ' || ')
 
     def get_best_row_name(self):
         topsis_scores = self._T_topsis_matrix[-1]
@@ -50,7 +54,7 @@ class TOPSIS(metaclass=SingletonMeta):
     def _generate_matrix(self, nodes):
         matrix = []
         for node in nodes:
-            cpu_usage = _get_value_from_string(node.cpu_usage) / 1000000000 / int(node.cpu_allocatable) * 100
+            cpu_usage = _get_value_from_string(node.cpu_usage) / 1000000000 / _get_value_from_string(node.cpu_allocatable) * 10000
             memory_usage = _get_value_from_string(node.memory_usage) / _get_value_from_string(
                 node.memory_allocatable) * 100
             disk_limit_usage = _get_value_from_string(node.eph_storage_limit) / _get_value_from_string(
@@ -69,7 +73,7 @@ class TOPSIS(metaclass=SingletonMeta):
 
         for row in self._topsis_matrix:
             for (indx, _) in enumerate(row[1:]):
-                row[indx + 1] /= powed_sums[indx]
+                row[indx + 1] /= powed_sums[indx] if powed_sums[indx] != 0 else 1
 
     def _calc_weighted_matrix(self):
         for row in self._topsis_matrix:
@@ -96,6 +100,7 @@ class TOPSIS(metaclass=SingletonMeta):
                 distance = minkowski_distance(row, self._b_distance, self._w_distance, 4, self._ahp.weights)
                 row.append(distance)
                 copied_initialized_score.append(distance)
+        self._T_topsis_matrix.append(copied_initialized_score)
         return copied_initialized_score
 
     def clear_topsis_cache(self):
@@ -107,7 +112,7 @@ class TOPSIS(metaclass=SingletonMeta):
             if name == best_row_name:
                 self._cached_nodes[indx] += 1
                 number_of_cached_nodes = self._cached_nodes[indx]
-                self._topsis_matrix[indx][-1] = self._copied_initialized_score[indx] * (
+                self._T_topsis_matrix[-1][indx] = self._topsis_matrix[indx][-1] = self._copied_initialized_score[indx] * (
                         1 - number_of_cached_nodes / (number_of_cached_nodes + self._number_of_pods[indx]) * exp( -1 / number_of_cached_nodes))  # attr 4 is number of pods, attr -1 is topsis score
                 break
 

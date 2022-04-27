@@ -19,8 +19,9 @@ spec:
       schedulerName: my-custom-scheduler
       containers:
       - name: httperf
-        imagePullPolicy: Never
-        image: http-test
+#        imagePullPolicy: Never
+#        image: http-test
+        image: us-central1-docker.pkg.dev/involuted-bird-346615/k8s-registry-1/httperf-image
         env:
           - name: NODE_NAME
             valueFrom:
@@ -28,8 +29,8 @@ spec:
                 fieldPath: spec.nodeName
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "128m"
-          limits:
             memory: "256Mi"
+            cpu: "256m"
+          limits:
+            memory: "512Mi"
             cpu: "512m"
