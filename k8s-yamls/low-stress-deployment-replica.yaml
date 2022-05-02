@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: low-stress-deployment
+  name: low-stress-deployment-replica
   labels:
     schedulingStrategy: meetup
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
-      app: low-stress
+      app: low-stress-replica
   template:
     metadata:
       labels:
-        app: low-stress
+        app: low-stress-replica
         schedulingStrategy: meetup
     spec:
       schedulerName: my-custom-scheduler

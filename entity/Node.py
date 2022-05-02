@@ -30,7 +30,7 @@ class Node:
         self.eph_storage_allocatable = status.allocatable['ephemeral-storage']
         self.pods_allocatable = status.allocatable['pods']
 
-        self.ip = status.addresses[0].address
+        self.ip = status.addresses[1].address
 
 
 
@@ -44,7 +44,7 @@ class Node:
                     if pod_container.resources.limits and 'ephemeral-storage' in pod_container.resources.limits:
                         eph_storage += _get_ki_value(pod_container.resources.limits['ephemeral-storage'])
                     if pod_container.resources.limits and 'hugepages-2Mi' in pod_container.resources.limits:
-                        huge_pages += pod_container.resources.limits['hugepages-2Mi']
+                        huge_pages += _get_ki_value(pod_container.resources.limits['hugepages-2Mi'])
 
         self.eph_storage_limit = str(eph_storage) + 'Ki'
         self.huge_pages_limit = str(huge_pages) + 'Ki'
@@ -53,12 +53,12 @@ class Node:
 
     def set_network_delay(self):
         s_time = time.time()
-        proc = subprocess.Popen(
-            ['ping', '-q', '-c', '1', self.ip],
+        proc_a = subprocess.Popen(
+            ['ping', '-q', '-c', '2', self.ip],
             stdout=subprocess.DEVNULL)
-        proc.wait()
-        proc = subprocess.Popen(
-            ['ping', '-q', '-c', '1', self.ip],
+        proc_b = subprocess.Popen(
+            ['ping', '-q', '-c', '2', self.ip],
             stdout=subprocess.DEVNULL)
-        proc.wait()
+        proc_a.wait()
+        proc_b.wait()
         self.network_delay = time.time() - s_time

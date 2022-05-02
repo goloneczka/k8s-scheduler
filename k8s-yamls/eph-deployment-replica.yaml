@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: eph-deployment
+  name: eph-deployment-replica
   labels:
     schedulingStrategy: meetup
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
-      app: eph-deployment
+      app: eph-deployment-replica
   template:
     metadata:
       labels:
-        app: eph-deployment
+        app: eph-deployment-replica
         schedulingStrategy: meetup
     spec:
       schedulerName: my-custom-scheduler
@@ -24,16 +24,22 @@ spec:
             requests:
               memory: "256Mi"
               cpu: "64m"
-              ephemeral-storage: "5Mi"
+              ephemeral-storage: "1250Mi"
+              hugepages-2Mi: "100Mi"
             limits:
               memory: "512Mi"
               cpu: "128m"
-              ephemeral-storage: "10Mi"
+              ephemeral-storage: "2500Mi"
+              hugepages-2Mi: "100Mi"
           volumeMounts:
             - name: ephermal
               mountPath: /ephermal-volume
+            - name: hugepage
+              mountPath: /hugepages
       volumes:
         - name: ephermal
           emptyDir: {}
-
+        - name: hugepage
+          emptyDir:
+            medium: HugePages
 

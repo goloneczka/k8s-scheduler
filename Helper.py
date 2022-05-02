@@ -27,17 +27,19 @@ def describe_pod(name = None):
 def list_node():
     v1 = client.CoreV1Api()
     for n in v1.list_node().items:
-        ip = n.status.addresses[0].address
-        os.system("ping -c1 -w4 " + ip)
-        os.system("ping -c1 -w4 " + ip)
-        logging.info("done !")
+        ip = n.status.addresses[1].address
+        print(n.metadata.name)
+        os.system("ping -c8 -w8 " + ip)
+        os.system("ping -c8 -w8 " + ip)
+
+    logging.info("done ! \n \n")
 
 def list_nodeA():
     v1 = client.CoreV1Api()
     for n in v1.list_node().items:
-        ip = n.status.addresses[0].address
+        ip = n.status.addresses[1].address
         proc = subprocess.Popen(
-            ['ping', '-q', '-c', '3', ip],
+            ['ping', '-q', '-c3', '-s16384', ip],
             stdout=subprocess.DEVNULL)
         proc.wait()
         if proc.returncode == 0:

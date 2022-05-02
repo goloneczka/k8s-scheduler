@@ -57,10 +57,10 @@ class TOPSIS(metaclass=SingletonMeta):
             cpu_usage = _get_value_from_string(node.cpu_usage) / 1000000000 / _get_value_from_string(node.cpu_allocatable) * 10000
             memory_usage = _get_value_from_string(node.memory_usage) / _get_value_from_string(
                 node.memory_allocatable) * 100
-            disk_limit_usage = _get_value_from_string(node.eph_storage_limit) / _get_value_from_string(
+            eph_limit_usage = _get_value_from_string(node.eph_storage_limit) / _get_value_from_string(
                 node.eph_storage_allocatable) * 100
             pods_usage = node.pods_len / int(node.pods_allocatable) * 100
-            matrix.append([node.name, cpu_usage, memory_usage, disk_limit_usage, pods_usage, node.network_delay])
+            matrix.append([node.name, cpu_usage, memory_usage, eph_limit_usage, pods_usage, node.network_delay])
         return matrix
 
     def _normalize_columns(self):

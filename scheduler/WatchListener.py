@@ -1,9 +1,11 @@
 import logging
 import datetime
+import random
 
 from kubernetes.client import CoreV1Api, CustomObjectsApi
 from kubernetes.watch import watch
 
+from Helper import list_node
 from rank.TOPSIS import TOPSIS
 from . import NodeHelper
 from . import Scheduler
@@ -35,6 +37,7 @@ def watch_pod_events():
                     except Exception as e:
                         logging.exception("Got problem:", e)
             topsis_rank.clear_topsis_cache()
+
         except:
             logging.exception("Ignoring Exception")
         finally:

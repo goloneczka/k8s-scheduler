@@ -21,14 +21,7 @@ spec:
     spec:
       serviceAccountName: my-custom-scheduler
       containers:
-        - image: scheduler
-#        - image: us-central1-docker.pkg.dev/involuted-bird-346615/k8s-registry-1/scheduler-image
+#        - image: scheduler
+        - image: us-central1-docker.pkg.dev/involuted-bird-346615/k8s-registry-1/scheduler-image
           name: my-custom-scheduler
-          imagePullPolicy: Never
-          resources:
-            requests:
-              memory: "100Mi"
-              cpu: "250m"
-            limits:
-              memory: "256Mi"
-              cpu: "512m"
+#          imagePullPolicy: Never
