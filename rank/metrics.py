@@ -7,7 +7,7 @@ def euclidean_distance(row, b_distance, w_distance):
         row_b_distance += (b_distance[indx] - nested_row) * (b_distance[indx] - nested_row)
         row_w_distance += (w_distance[indx] - nested_row) * (w_distance[indx] - nested_row)
 
-    return (sqrt(row_w_distance) / (sqrt(row_w_distance) + sqrt(row_b_distance))) if row_b_distance != 0.0 else 1
+    return sqrt(row_w_distance) / (sqrt(row_w_distance) + sqrt(row_b_distance)) if row_b_distance != 0.0 else 1
 
 
 def minkowski_distance(row, b_distance, w_distance, p, weights):

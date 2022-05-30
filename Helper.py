@@ -30,20 +30,18 @@ def list_node():
         ip = n.status.addresses[1].address
         print(n.metadata.name)
         os.system("ping -c8 -w8 " + ip)
-        os.system("ping -c8 -w8 " + ip)
 
     logging.info("done ! \n \n")
 
 def list_nodeA():
     v1 = client.CoreV1Api()
     for n in v1.list_node().items:
+        print(n.metadata.name)
         ip = n.status.addresses[1].address
         proc = subprocess.Popen(
-            ['ping', '-q', '-c3', '-s16384', ip],
-            stdout=subprocess.DEVNULL)
+            ['ping', '-q', '-c5', '-s16384', ip])
         proc.wait()
-        if proc.returncode == 0:
-            print('{} is UP'.format(ip))
+
 
 def node_usage():
     api = client.CustomObjectsApi()

@@ -36,13 +36,14 @@ def _get_ready_nodes(v1_client):
 
 
 def calc_nodes(node_list, v1_client, v1_api):
-    k8s_nodes = [Node(v1_api.get_cluster_custom_object("metrics.k8s.io", "v1beta1", "nodes", n.metadata.name), n.status) for n in node_list]
-    for node in k8s_nodes:
-        node.calculate_usages_from_pods(v1_client.list_pod_for_all_namespaces(watch=False, field_selector='spec.nodeName='+node.name))
-        node.set_network_delay()
 
     topsis_rank_instance = TOPSIS()
     if not topsis_rank_instance.is_initialed():
+        k8s_nodes = [Node(v1_api.get_cluster_custom_object(
+            "metrics.k8s.io", "v1beta1", "nodes", n.metadata.name), n.status) for n in node_list]
+        for node in k8s_nodes:
+            node.calculate_usages_from_pods(
+                v1_client.list_pod_for_all_namespaces(watch=False, field_selector='spec.nodeName=' + node.name))
         topsis_rank_instance.init(k8s_nodes)
 
     best_row_name = topsis_rank_instance.get_best_row_name()

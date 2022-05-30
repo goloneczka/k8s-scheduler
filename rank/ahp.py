@@ -1,12 +1,20 @@
-#   attrs: cpu_usage, memory_usage, disk_limit_usage, pods_usage, node.network_delay
+#   attrs: cpu_usage, memory_usage, disk_limit_usage, pods_usage, node.unused_costs
 
 from rank.SingletonMeta import SingletonMeta
 
-_criteria_matrix = [[1.0, 1.0, 5.0, 3.0, 3.0],
-                    [1.0, 1.0, 5.0, 3.0, 3.0],
-                    [0.2, 0.2, 1.0, 0.33, 0.33],
-                    [0.33, 0.33, 3.0, 1.0, 1.0],
-                    [0.33, 0.33, 3.0, 1.0, 1.0]]
+# _criteria_matrix = [[1,     1,      5,      3,      1/3],
+#                     [1,     1,      5,      3,      1/3],
+#                     [1/5,   1/5,    1,      1/3,    1/7],
+#                     [1/3,   1/3,    2,      1,      1/5],
+#                     [3,     3,      7,      5,        1]]
+
+_criteria_matrix = [[1.0, 1.0, 5.0, 3.0, 0.33],
+                    [1.0, 1.0, 5.0, 3.0, 0.33],
+                    [0.2, 0.2, 1.0, 0.33, 0.14],
+                    [0.33, 0.33, 2.0, 1.0, 0.2],
+                    [3.0, 3.0, 7.0, 5.0, 1.0]]
+
+
 _count_criteria_columns = 5
 
 

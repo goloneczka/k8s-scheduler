@@ -5,7 +5,7 @@ metadata:
   labels:
     schedulingStrategy: meetup
 spec:
-  schedulerName: my-custom-scheduler
+ schedulerName: my-custom-scheduler
   containers:
     - name: stress
       image: jfusterm/stress

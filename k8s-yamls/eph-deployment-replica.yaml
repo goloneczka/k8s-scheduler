@@ -19,27 +19,20 @@ spec:
       containers:
         - name: stress
           image: jfusterm/stress
-          command: [ "stress", "--vm", "1", "--vm-bytes", "256m"]
+          command: [ "stress", "--vm", "1", "--vm-bytes", "750m"]
           resources:
             requests:
-              memory: "256Mi"
+              memory: "750Mi"
               cpu: "64m"
-              ephemeral-storage: "1250Mi"
-              hugepages-2Mi: "100Mi"
+              ephemeral-storage: "50Mi"
             limits:
-              memory: "512Mi"
+              memory: "1024Mi"
               cpu: "128m"
-              ephemeral-storage: "2500Mi"
-              hugepages-2Mi: "100Mi"
+              ephemeral-storage: "70Mi"
           volumeMounts:
             - name: ephermal
               mountPath: /ephermal-volume
-            - name: hugepage
-              mountPath: /hugepages
       volumes:
         - name: ephermal
           emptyDir: {}
-        - name: hugepage
-          emptyDir:
-            medium: HugePages
 

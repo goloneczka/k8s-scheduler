@@ -13,9 +13,8 @@ spec:
     metadata:
       labels:
         app: stress
-        schedulingStrategy: meetup
-    spec:
-      schedulerName: my-custom-scheduler
+#       schedulingStrategy: meetup    spec:
+schedulerName: my-custom-scheduler
       containers:
         - name: stress
           image: jfusterm/stress

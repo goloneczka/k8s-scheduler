@@ -19,14 +19,14 @@ spec:
       containers:
         - name: stress
           image: jfusterm/stress
-          command: [ "stress", "--vm", "1", "--vm-bytes", "256m"]
+          command: [ "stress", "--vm", "1", "--vm-bytes", "750m"]
           resources:
             requests:
-              memory: "256Mi"
+              memory: "750Mi"
               cpu: "64m"
               ephemeral-storage: "5Mi"
             limits:
-              memory: "512Mi"
+              memory: "1024Mi"
               cpu: "128m"
               ephemeral-storage: "10Mi"
           volumeMounts:

@@ -25,19 +25,15 @@ def watch_pod_events():
                                         timeout_seconds=20):
                 if event["object"].status.phase == "Pending" and event['object'].spec.node_name is None:
                     try:
-                        logging.info(f'{event["object"].metadata.name} needs scheduling...')
                         pod = Pod(event["object"])
-                        logging.info("Processing for Pod: %s/%s", pod.namespace, pod.name)
                         node_name = NodeHelper.choose_best_node(V1_CLIENT, V1_API)
                         if node_name:
-                            res = Scheduler.schedule_pod(V1_CLIENT, pod.name, node_name, pod.namespace)
-                            logging.info("Response %s ", res)
+                            Scheduler.schedule_pod(V1_CLIENT, pod.name, node_name, pod.namespace)
                         else:
                             logging.error(f"Found no valid node to schedule {pod.name} in {pod.namespace}")
                     except Exception as e:
                         logging.exception("Got problem:", e)
             topsis_rank.clear_topsis_cache()
-
         except:
             logging.exception("Ignoring Exception")
         finally:
