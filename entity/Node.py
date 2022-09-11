@@ -1,15 +1,17 @@
-import os
 import re
 import subprocess
-import time
 
 
 def _get_ki_value(string):
-    val_and_mesaurment = re.split('(\d+)',string)
+    val_and_mesaurment = re.split('(\d+)', string)
     if val_and_mesaurment[2] == 'Ki':
         return float(val_and_mesaurment[1])
     elif val_and_mesaurment[2] == 'Mi':
         return float(val_and_mesaurment[1]) * 1000
+    elif val_and_mesaurment[2] == 'm':
+        return float(val_and_mesaurment[1]) / 1000
+    elif val_and_mesaurment[2] == 'n':
+        return float(val_and_mesaurment[1]) / 1000000000
     else:
         return float(val_and_mesaurment[1])
 
@@ -23,17 +25,18 @@ class Node:
         self.pods_len = None
 
         self.name = custom_obj['metadata']['name']
-        self.cpu_usage = custom_obj['usage']['cpu']
-        self.memory_usage = custom_obj['usage']['memory']
+        self.cpu_usage = _get_ki_value(custom_obj['usage']['cpu'])
+        self.memory_usage = _get_ki_value(custom_obj['usage']['memory'])
 
-        self.cpu_allocatable = status.allocatable['cpu']
-        self.memory_allocatable = status.allocatable['memory']
-        self.eph_storage_allocatable = status.allocatable['ephemeral-storage']
+        self.cpu_allocatable = _get_ki_value(status.allocatable['cpu'])
+        self.memory_allocatable = _get_ki_value(status.allocatable['memory'])
+        self.eph_storage_allocatable = _get_ki_value(status.allocatable['ephemeral-storage'])
         self.pods_allocatable = status.allocatable['pods']
 
-        self.ip = status.addresses[0].address
+        self.ip = status.addresses[1].address
 
-
+        self.unused_costs = (self.cpu_allocatable - self.cpu_usage) * 0.021811 + \
+                            (self.memory_allocatable - self.memory_usage) / 1000000 * 0.002923
 
     def calculate_usages_from_pods(self, pods):
         eph_storage = .0
@@ -45,21 +48,9 @@ class Node:
                     if pod_container.resources.limits and 'ephemeral-storage' in pod_container.resources.limits:
                         eph_storage += _get_ki_value(pod_container.resources.limits['ephemeral-storage'])
                     if pod_container.resources.limits and 'hugepages-2Mi' in pod_container.resources.limits:
-                        huge_pages += pod_container.resources.limits['hugepages-2Mi']
+                        huge_pages += _get_ki_value(pod_container.resources.limits['hugepages-2Mi'])
 
-        self.eph_storage_limit = str(eph_storage) + 'Ki'
-        self.huge_pages_limit = str(huge_pages) + 'Ki'
+        self.eph_storage_limit = eph_storage
+        self.huge_pages_limit = huge_pages
         self.pods_len = len(pods)
 
-
-    def set_network_delay(self):
-        s_time = time.time()
-        proc = subprocess.Popen(
-            ['ping', '-q', '-c', '1', self.ip],
-            stdout=subprocess.DEVNULL)
-        proc.wait()
-        proc = subprocess.Popen(
-            ['ping', '-q', '-c', '1', self.ip],
-            stdout=subprocess.DEVNULL)
-        proc.wait()
-        self.network_delay = time.time() - s_time

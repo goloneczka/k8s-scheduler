@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eph-deployment-replica
+  labels:
+    schedulingStrategy: meetup
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: eph-deployment-replica
+  template:
+    metadata:
+      labels:
+        app: eph-deployment-replica
+        schedulingStrategy: meetup
+    spec:
+      schedulerName: my-custom-scheduler
+      containers:
+        - name: stress
+          image: jfusterm/stress
+          command: [ "stress", "--vm", "1", "--vm-bytes", "750m"]
+          resources:
+            requests:
+              memory: "750Mi"
+              cpu: "64m"
+              ephemeral-storage: "50Mi"
+            limits:
+              memory: "1024Mi"
+              cpu: "128m"
+              ephemeral-storage: "70Mi"
+          volumeMounts:
+            - name: ephermal
+              mountPath: /ephermal-volume
+      volumes:
+        - name: ephermal
+          emptyDir: {}
+

@@ -1,29 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: stress-deployment-1
+  name: low-stress-deployment-replica
   labels:
     schedulingStrategy: meetup
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
-      app: stress
+      app: low-stress-replica
   template:
     metadata:
       labels:
-        app: stress
+        app: low-stress-replica
         schedulingStrategy: meetup
     spec:
       schedulerName: my-custom-scheduler
       containers:
         - name: stress
           image: jfusterm/stress
-          command: [ "stress", "--cpu", "1" ]
+          command: [ "stress", "--cpu", "1", "--vm", "1", "--vm-bytes", "750m"]
           resources:
             requests:
-              memory: "256Mi"
+              memory: "750Mi"
               cpu: "256m"
             limits:
-              memory: "512Mi"
+              memory: "1300Mi"
               cpu: "512m"
